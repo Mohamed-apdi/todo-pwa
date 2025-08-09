@@ -94,7 +94,7 @@ export default function Page() {
         <div className="flex items-center gap-3">
           {/* Scan icon link */}
           <a
-            href="/todo/app/scan"
+            href="/scan"
             title="Scan"
             aria-label="Scan"
             className="rounded border px-2 py-1 hover:bg-gray-100"
