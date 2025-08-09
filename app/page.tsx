@@ -7,6 +7,7 @@ type Todo = { id: string; text: string; done: boolean; createdAt: number };
 export default function Page() {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [text, setText] = useState('');
+  const [notifReady, setNotifReady] = useState(false);
 
   // Load from localStorage on first render
   useEffect(() => {
@@ -32,13 +33,47 @@ export default function Page() {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
+  // Notifications: set a simple enabled flag
+  useEffect(() => {
+    setNotifReady(typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator);
+  }, []);
+
   const remaining = useMemo(() => todos.filter(t => !t.done).length, [todos]);
+
+  async function enableNotifications() {
+    if (!notifReady) return;
+    let perm = Notification.permission;
+    if (perm !== 'granted') {
+      perm = await Notification.requestPermission(); // must be triggered by user gesture
+    }
+    if (perm === 'granted') {
+      const reg = await navigator.serviceWorker.ready;
+      await reg.showNotification('Notifications enabled', {
+        body: 'You will get a ping when you add a task.',
+        icon: '/icons/icon-192.png',
+      });
+    }
+  }
 
   function addTodo() {
     const t = text.trim();
     if (!t) return;
     setTodos(prev => [{ id: crypto.randomUUID(), text: t, done: false, createdAt: Date.now() }, ...prev]);
     setText('');
+
+    // Fire a system notification (if permission granted)
+    (async () => {
+      try {
+        if (notifReady && Notification.permission === 'granted') {
+          const reg = await navigator.serviceWorker.ready;
+          await reg.showNotification('New todo added', {
+            body: t,
+            icon: '/icons/icon-192.png',
+            data: '/',
+          });
+        }
+      } catch {}
+    })();
   }
 
   function toggle(id: string) {
@@ -55,7 +90,29 @@ export default function Page() {
 
   return (
     <main className="mx-auto max-w-md p-6">
-      <h1 className="text-2xl font-semibold mb-4">Todo</h1>
+      {/* Header with icons */}
+      <header className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-semibold">Todo</h1>
+        <div className="flex items-center gap-3">
+          <a
+            href="/scan"
+            title="Scan"
+            aria-label="Scan"
+            className="rounded border px-2 py-1 hover:bg-gray-100"
+          >
+            📷
+          </a>
+          <button
+            onClick={enableNotifications}
+            title="Enable notifications"
+            aria-label="Enable notifications"
+            className="rounded border px-2 py-1 hover:bg-gray-100"
+          >
+            🔔
+          </button>
+        </div>
+      </header>
+
       <div className="flex gap-2 mb-4">
         <input
           className="flex-1 border rounded px-3 py-2"
