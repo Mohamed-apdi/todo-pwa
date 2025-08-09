@@ -9,7 +9,7 @@ export default function Page() {
   const [text, setText] = useState('');
   const [notifReady, setNotifReady] = useState(false);
 
-  // Load from localStorage on first render
+  // Load from localStorage
   useEffect(() => {
     try {
       const raw = localStorage.getItem('todos');
@@ -17,7 +17,7 @@ export default function Page() {
     } catch {}
   }, []);
 
-  // Persist any change
+  // Save to localStorage
   useEffect(() => {
     try {
       localStorage.setItem('todos', JSON.stringify(todos));
@@ -33,7 +33,6 @@ export default function Page() {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  // Notifications: set a simple enabled flag
   useEffect(() => {
     setNotifReady(typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator);
   }, []);
@@ -44,7 +43,7 @@ export default function Page() {
     if (!notifReady) return;
     let perm = Notification.permission;
     if (perm !== 'granted') {
-      perm = await Notification.requestPermission(); // must be triggered by user gesture
+      perm = await Notification.requestPermission();
     }
     if (perm === 'granted') {
       const reg = await navigator.serviceWorker.ready;
@@ -61,7 +60,6 @@ export default function Page() {
     setTodos(prev => [{ id: crypto.randomUUID(), text: t, done: false, createdAt: Date.now() }, ...prev]);
     setText('');
 
-    // Fire a system notification (if permission granted)
     (async () => {
       try {
         if (notifReady && Notification.permission === 'granted') {
@@ -94,14 +92,16 @@ export default function Page() {
       <header className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-semibold">Todo</h1>
         <div className="flex items-center gap-3">
+          {/* Scan icon link */}
           <a
-            href="/scan"
+            href="/todo/app/scan"
             title="Scan"
             aria-label="Scan"
             className="rounded border px-2 py-1 hover:bg-gray-100"
           >
             📷
           </a>
+          {/* Notifications icon button */}
           <button
             onClick={enableNotifications}
             title="Enable notifications"
