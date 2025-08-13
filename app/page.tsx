@@ -49,7 +49,7 @@ export default function Page() {
       const reg = await navigator.serviceWorker.ready;
       await reg.showNotification('Notifications enabled', {
         body: 'You will get a ping when you add a task.',
-        icon: '/icons/icon-192.png',
+        icon: '/todo/public/icon/logo-192.png',
       });
     }
   }
@@ -66,7 +66,7 @@ export default function Page() {
           const reg = await navigator.serviceWorker.ready;
           await reg.showNotification('New todo added', {
             body: t,
-            icon: '/icons/icon-192.png',
+            icon: '/todo/public/icon/logo-192.png',
             data: '/',
           });
         }
